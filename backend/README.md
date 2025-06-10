@@ -1,6 +1,8 @@
 # Product Catalog Application - Backend
 
-A Node.js and Express-based backend that serves as the API for the product catalog application. It works with a MongoDB database.
+This is the Node.js and Express-based backend that serves the API for the product catalog application. It works with a MongoDB database.
+
+**Note: For complete setup instructions, including database setup with Docker, please see the main `README.md` file in the project's root directory.**
 
 ---
 
@@ -16,13 +18,12 @@ A Node.js and Express-based backend that serves as the API for the product catal
 
 ---
 
-## 🛠️ Setup and Launch (from scratch)
+## 🛠️ Setup and Launch
 
 ### Prerequisites
 
 -   **Node.js** (version >= 18.x)
 -   **npm**
--   **Docker** (recommended for running the MongoDB database)
 
 ### Step 1: Install Dependencies
 
@@ -35,7 +36,7 @@ npm install
 
 ### Step 2: Configure Environment Variables
 
-Create a `.env` file in the `backend` directory. You can fill it with the required values based on the `config/index.js` configuration file.
+Create a `.env` file in the `backend` directory. Fill it with the required values. The `DB_URI` should point to your MongoDB instance. If you are using the Docker setup from the main README, the default value will work correctly.
 
 ```env
 # Port on which the server will run
@@ -59,39 +60,10 @@ MAILERSEND_API_KEY=your_mailersend_api_key
 # Sender email address configured in MailerSend
 MAILERSEND_SENDER_EMAIL=your_sender@email.com
 ```
-**Important:** Replace `JWT_SECRET`, `MAILERSEND_API_KEY`, and `MAILERSEND_SENDER_EMAIL` with your own values.
 
-### Step 3: Run the MongoDB Database
+### Step 3: Run the Backend Server
 
-The easiest way is to use Docker. Run a MongoDB container using the command below:
-
-```sh
-docker run -d -p 27017:27017 --name mongo-catalog mongo
-```
-This command will pull the `mongo` image, start a container named `mongo-catalog`, and map the database port `27017` to your host machine.
-
-### Step 4: Seed the Database
-
-The project includes a `seed.js` script that creates collections and populates them with initial data (categories, products, an admin user).
-
-To copy the `seed.js` file to the MongoDB container, use the following command:
-
-```sh
-docker cp seed.js mongo-catalog:/seed.js
-```
-
-Then, execute the script inside the MongoDB container to initialize the database:
-
-```sh
-docker exec -it mongo-katalog mongosh "mongodb://localhost:27017" --file seed.js
-```
-After the script runs, a default admin user will be created with the following credentials:
--   **Email**: `mail@example.com`
--   **Password**: `root`
-
-### Step 5: Run the Backend Server
-
-After completing all the above steps, you can start the server.
+After completing the database setup (as described in the main README) and configuring your `.env` file, you can start the server.
 
 #### Development mode (with auto-reloading):
 ```sh
@@ -113,5 +85,3 @@ The server exposes the following main groups of endpoints:
 -   `/api/users` - Registration, login, and user management
 -   `/api/categories` - Operations on product categories
 -   `/api/recently-added` - Fetching recently added products
-
-The detailed route structure is defined in the files within the `routes` directory.
