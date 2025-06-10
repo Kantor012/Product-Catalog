@@ -46,7 +46,7 @@ PORT=5000
 BASE_URL=http://localhost:5173
 
 # Connection string for the MongoDB database
-DB_URI=mongodb://localhost:27017/katalog_produktow
+DB_URI=mongodb://localhost:27017/mongo-catalog
 
 # Secret key for signing JWT tokens
 JWT_SECRET=your_secret_jwt_key

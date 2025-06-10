@@ -2,7 +2,7 @@
 // Execution: docker exec -it <container_name> mongosh "mongodb://localhost:27017" --file seed.js
 // ===============================================================
 
-db = db.getSiblingDB('katalog_produktow');
+db = db.getSiblingDB('mongo-catalog');
 db.dropDatabase();
 // --- Create Collections ---
 const collectionsToAdd = ['products', 'categories', 'recentlyAdded', 'users'];

@@ -24,7 +24,7 @@ This guide explains how to set up the database, backend, and frontend to run the
 Use Docker to start a MongoDB container. This command will download the official MongoDB image and run it in the background on the standard port `27017`.
 
 ```sh
-docker run -d -p 27017:27017 --name mongo-katalog mongo
+docker run -d -p 27017:27017 --name mongo-catalog mongo
 ```
 
 ### Step 2: Seed the Database
@@ -34,7 +34,7 @@ The project includes a script to populate the database with initial categories, 
 Run the following command from the **root directory of this project**:
 
 ```sh
-docker exec -it mongo-katalog mongosh "mongodb://localhost:27017" --file seed.js
+docker exec -it mongo-catalog mongosh "mongodb://localhost:27017" --file seed.js
 ```
 
 After the script runs, a default admin user will be created with the following credentials:
@@ -53,7 +53,7 @@ After the script runs, a default admin user will be created with the following c
     ```
 3.  **Create an environment file.** Create a `.env` file in the `/backend` directory and add the necessary configuration. See `backend/README.md` for a full list of variables. For this setup, ensure your `DB_URI` is correct:
     ```env
-    DB_URI=mongodb://localhost:27017/katalog_produktow
+    DB_URI=mongodb://localhost:27017/mongo-catalog
     PORT=5000
     JWT_SECRET=your_super_secret_key
     # Add other variables like MailerSend keys if needed
