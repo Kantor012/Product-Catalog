@@ -22,7 +22,7 @@ This is the Node.js and Express-based backend that serves the API for the produc
 
 ### Prerequisites
 
--   **Node.js** (version >= 18.x)
+-   **Node.js** (version >= 22.x)
 -   **npm**
 
 ### Step 1: Install Dependencies

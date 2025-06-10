@@ -15,7 +15,7 @@ This guide explains how to set up the database, backend, and frontend to run the
 
 ### Prerequisites
 
--   **Node.js** (version >= 18.x recommended)
+-   **Node.js** (version >= 22.x recommended)
 -   **npm**
 -   **Docker** (for running the MongoDB database)
 
