@@ -20,6 +20,7 @@ const product = computed(() => productStore.product);
 const reviewsCurrentPage = ref(1);
 const reviewsPerPage = 5;
 const showReviewForm = ref(false);
+const willBePromotional = ref(false);
 
 const editingField = ref<string | null>(null);
 const editValue = ref<string | number>('');
@@ -32,11 +33,60 @@ const startEditing = (field: string, currentValue: string | number) => {
 const cancelEditing = () => {
     editingField.value = null;
     editValue.value = '';
+    willBePromotional.value = false;
 };
 
 const saveEdit = async () => {
-    if (editingField.value && product.value) {
-        await productStore.updateProductField(product.value._id, { [editingField.value]: editValue.value });
+    if (!editingField.value || !product.value) {
+        cancelEditing();
+        return;
+    }
+
+    const field = editingField.value;
+    const newValue = editValue.value;
+    let payload = {};
+
+    const isPriceField = field === 'price' || field === 'promotionalPrice';
+    const numericValue = isPriceField ? (typeof newValue === 'number' ? newValue : parseFloat(String(newValue))) : null;
+
+    if (isPriceField && (numericValue === null || isNaN(numericValue))) {
+        console.error("Invalid price value");
+        cancelEditing();
+        return;
+    }
+
+    if (field === 'price' && !product.value.isPromotional) {
+        if (showPromotionalToggle.value && willBePromotional.value) {
+            payload = {
+                isPromotional: true,
+                promotionalPrice: numericValue
+            };
+        } else {
+            payload = { price: numericValue };
+        }
+    }
+    else if (field === 'promotionalPrice' && product.value.isPromotional) {
+        if (numericValue >= product.value.price) {
+            payload = {
+                price: numericValue,
+                isPromotional: false,
+                promotionalPrice: null
+            };
+        }
+        else {
+            payload = {
+                price: product.value.promotionalPrice,
+                promotionalPrice: numericValue,
+                isPromotional: true
+            };
+        }
+    }
+    else {
+        payload = { [field]: newValue };
+    }
+
+    if (Object.keys(payload).length > 0) {
+        await productStore.updateProductField(product.value._id, payload);
     }
     cancelEditing();
 };
@@ -63,6 +113,14 @@ const changeReviewPage = (page: number) => {
         reviewsCurrentPage.value = page;
     }
 }
+
+const showPromotionalToggle = computed(() => {
+    if (editingField.value !== 'price' || !product.value || product.value.isPromotional) {
+        return false;
+    }
+    const numericValue = parseFloat(String(editValue.value));
+    return !isNaN(numericValue) && numericValue < product.value.price;
+});
 
 watch(() => product.value?.reviews.length, (newLength, oldLength) => {
     if (newLength !== undefined && oldLength !== undefined && newLength < oldLength) {
@@ -135,17 +193,25 @@ watch(() => props.id, (newId) => {
 
                 <div class="price-container-details">
                     <div class="editable-field">
-                        <p v-if="editingField !== 'price'" class="price">
+                        <p v-if="editingField !== 'price' && editingField !== 'promotionalPrice'" class="price">
                             {{ product.isPromotional ? product.promotionalPrice : product.price }} PLN
                             <span v-if="authStore.isAdmin" class="material-icons edit-icon" @click="startEditing(product.isPromotional ? 'promotionalPrice' : 'price', product.isPromotional ? product.promotionalPrice : product.price)">edit</span>
                         </p>
                         <div v-else class="edit-mode">
                             <input type="number" step="0.01" v-model.number="editValue" class="edit-input-price" />
-                            <button @click="saveEdit" class="btn-save">Save</button>
-                            <button @click="cancelEditing" class="btn-cancel">Cancel</button>
+
+                            <div v-if="showPromotionalToggle" class="promo-toggle">
+                                <input type="checkbox" v-model="willBePromotional" id="promo-check" />
+                                <label for="promo-check">Set as sale</label>
+                            </div>
+
+                            <div class="edit-buttons">
+                                <button @click="saveEdit" class="btn-save">Save</button>
+                                <button @click="cancelEditing" class="btn-cancel">Cancel</button>
+                            </div>
                         </div>
                     </div>
-                    <p v-if="product.isPromotional" class="price-old">{{ product.price }} PLN</p>
+                    <p v-if="product.isPromotional && editingField !== 'price' && editingField !== 'promotionalPrice'" class="price-old">{{ product.price }} PLN</p>
                 </div>
             </div>
         </div>
@@ -252,6 +318,9 @@ watch(() => props.id, (newId) => {
 .edit-icon { cursor: pointer; font-size: 1.1rem; color: #757575; vertical-align: middle; margin-left: 0.5rem; transition: color 0.2s ease; }
 .editable-field:hover .edit-icon:hover { color: var(--primary-color); }
 .edit-mode { display: flex; flex-direction: column; gap: 0.5rem; margin: 1rem 0; }
+.promo-toggle { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+.promo-toggle input { width: auto; }
+.edit-buttons { display: flex; gap: 0.5rem; }
 .edit-mode .btn-save { background-color: var(--success-color); align-self: flex-start;}
 .edit-mode .btn-cancel { background-color: #9e9e9e; align-self: flex-start;}
 .edit-input-h1 { font-size: 2.5rem; font-weight: bold; }
