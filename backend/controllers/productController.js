@@ -274,7 +274,7 @@ const deleteSingleReview = asyncHandler(async (req, res) => {
     const reviews = product.reviews.filter(review => review._id.toString() !== reviewId);
 
     const numReviews = reviews.length;
-    const rating = numReviews > 0 ? reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews : 0;
+    const rating = numReviews > 0 ? reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews : 1;
 
     await db.collection('products').updateOne(
         { _id: new ObjectId(productId) },

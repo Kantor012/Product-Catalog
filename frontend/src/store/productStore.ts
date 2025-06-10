@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import apiClient from '@/services/api';
 import { useUiStore } from "@/store/uiStore";
+import router from '@/router';
 
 interface Category {
     _id: string;
@@ -133,6 +134,61 @@ export const useProductStore = defineStore('products', {
         },
         setViewMode(mode: 'grid' | 'list') {
             this.viewMode = mode;
+        },
+
+        async deleteProductAndRedirect(id: string) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                try {
+                    await apiClient.delete(`/products/${id}`);
+                    const uiStore = useUiStore();
+                    uiStore.setNotification('Product successfully deleted', 'success');
+                    await router.push('/products');
+                } catch (error: any) {
+                    const uiStore = useUiStore();
+                    const message = error.response?.data?.message || 'Failed to delete product.';
+                    uiStore.setNotification(message, 'error');
+                }
+            }
+        },
+
+        async deleteReview(productId: string, reviewId: string) {
+            if (confirm('Are you sure you want to delete this review?')) {
+                const uiStore = useUiStore();
+                try {
+                    await apiClient.delete(`/products/${productId}/reviews/${reviewId}`);
+                    uiStore.setNotification('Review deleted', 'success');
+                    await this.fetchProductById(productId);
+                } catch (error: any) {
+                    const message = error.response?.data?.message || 'Failed to delete review.';
+                    uiStore.setNotification(message, 'error');
+                }
+            }
+        },
+
+        async deleteAllReviews(productId: string) {
+            if (confirm('Are you sure you want to delete ALL reviews for this product?')) {
+                const uiStore = useUiStore();
+                try {
+                    await apiClient.delete(`/products/${productId}/reviews`);
+                    uiStore.setNotification('All reviews deleted', 'success');
+                    await this.fetchProductById(productId);
+                } catch (error: any) {
+                    const message = error.response?.data?.message || 'Failed to delete reviews.';
+                    uiStore.setNotification(message, 'error');
+                }
+            }
+        },
+
+        async updateProductField(productId: string, fieldData: object) {
+            const uiStore = useUiStore();
+            try {
+                await apiClient.patch(`/products/${productId}`, fieldData);
+                uiStore.setNotification('Product updated successfully!', 'success');
+                await this.fetchProductById(productId);
+            } catch (error: any) {
+                const message = error.response?.data?.message || 'Failed to update product field.';
+                uiStore.setNotification(message, 'error');
+            }
         },
     }
 });

@@ -195,6 +195,7 @@ async function seedDB() {
                 const comment = possibleComments[Math.floor(Math.random() * possibleComments.length)];
 
                 reviews.push({
+                    _id: new ObjectId(),
                     name: reviewAuthors[Math.floor(Math.random() * reviewAuthors.length)],
                     rating: rating,
                     comment: comment,
