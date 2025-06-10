@@ -46,7 +46,7 @@ The `src` directory is organized to ensure scalability and maintainability:
 
 ### Prerequisites
 
--   Node.js (version >= 18.x recommended)
+-   Node.js (version >= 22.x recommended)
 -   npm
 
 ### API Connection Setup
