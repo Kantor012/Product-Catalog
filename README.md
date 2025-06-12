@@ -31,6 +31,17 @@ docker run -d -p 27017:27017 --name mongo-catalog mongo
 
 The project includes a script to populate the database with initial categories, products, reviews, and a default admin user.
 
+<details>
+    <summary>If seed.js is not in docker container yet</summary>
+    
+Run the following command from the <strong>root directory of this project</strong>:
+    
+    ```sh
+    docker cp seed.js mongo-catalog:/seed.js
+    ```
+    
+</details>
+
 Run the following command from the **root directory of this project**:
 
 ```sh
