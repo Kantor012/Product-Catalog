@@ -28,7 +28,7 @@ router.route('/promotional')
     .get(getPromotionalProducts);
 
 router.route('/recommendations/:id')
-    .get(protect, getRecommendations);
+    .get(getRecommendations);
 
 router.route('/:id')
     .get(getProductById)
