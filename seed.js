@@ -97,7 +97,7 @@ async function seedDB() {
             continue;
         }
 
-        for (let i = 1; i <= 1000; i++) {
+        for (let i = 1; i <= 50; i++) {
             const brand = data.brands[Math.floor(Math.random() * data.brands.length)];
             let model = data.models[Math.floor(Math.random() * data.models.length)];
 
