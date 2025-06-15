@@ -11,7 +11,7 @@ const connectDB = async () => {
     try {
         client = new MongoClient(config.databaseUrl, {});
         await client.connect();
-        db = client.db('katalog_produktow');
+        db = client.db('mongo-catalog');
         const recentlyAddedCollection = db.collection('recentlyAdded');
         try {
             await recentlyAddedCollection.dropIndex("createdAt_1");
