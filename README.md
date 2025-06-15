@@ -36,9 +36,8 @@ The project includes a script to populate the database with initial categories, 
     
 Run the following command from the <strong>root directory of this project</strong>:
     
-    ```sh
     docker cp seed.js mongo-catalog:/seed.js
-    ```
+    
     
 </details>
 
