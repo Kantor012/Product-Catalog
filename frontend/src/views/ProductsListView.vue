@@ -1,19 +1,40 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { useProductStore } from '@/store/productStore';
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import ProductCard from '@/components/product/ProductCard.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import ProductFilters from '@/components/common/ProductFilters.vue';
 
 const productStore = useProductStore();
 const route = useRoute();
+const router = useRouter();
 
 const fetchProductsBasedOnRoute = () => {
     productStore.fetchProducts(route.query);
 };
 
 watch(() => route.query, fetchProductsBasedOnRoute, { immediate: true });
+
+watch(() => productStore.products, (newProducts) => {
+    if (route.query.keyword && !route.query.category && newProducts.length > 0) {
+        const categoryCounts = newProducts.reduce((acc, product) => {
+            const catId = product.category;
+            if (catId) {
+                acc[catId] = (acc[catId] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+        if (Object.keys(categoryCounts).length > 0) {
+            const mostFrequentCategoryId = Object.keys(categoryCounts).reduce((a, b) => categoryCounts[a] > categoryCounts[b] ? a : b);
+
+            if (mostFrequentCategoryId) {
+                router.replace({ query: { ...route.query, category: mostFrequentCategoryId } });
+            }
+        }
+    }
+}, { deep: true });
 
 const groupedProducts = computed(() => {
     if (!productStore.products) return {};

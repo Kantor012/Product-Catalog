@@ -2,6 +2,13 @@ import asyncHandler from 'express-async-handler';
 import { getDb } from '../config/db.js';
 import { ObjectId } from 'mongodb';
 
+const generateSearchableString = (details) => {
+    if (!details || typeof details !== 'object') {
+        return '';
+    }
+    return Object.values(details).join(' ');
+};
+
 const fullProductAggregation = [
     {
         $lookup: {
@@ -23,9 +30,11 @@ const searchProducts = asyncHandler(async (req, res) => {
     const db = getDb();
     const { keyword, category, minPrice, maxPrice, sort } = req.query;
     const initialMatchQuery = {};
+
     if (keyword) {
         initialMatchQuery.$text = { $search: keyword };
     }
+
     if (category) {
         try {
             initialMatchQuery.category = new ObjectId(category);
@@ -33,6 +42,7 @@ const searchProducts = asyncHandler(async (req, res) => {
             console.warn(`Invalid category ID received: ${category}`);
         }
     }
+
     const pipeline = [
         { $match: initialMatchQuery },
         {
@@ -52,6 +62,7 @@ const searchProducts = asyncHandler(async (req, res) => {
             }
         }
     ];
+
     const priceMatchQuery = {};
     if (minPrice && !isNaN(Number(minPrice))) {
         priceMatchQuery.$gte = Number(minPrice);
@@ -62,7 +73,12 @@ const searchProducts = asyncHandler(async (req, res) => {
     if (Object.keys(priceMatchQuery).length > 0) {
         pipeline.push({ $match: { effectivePrice: priceMatchQuery } });
     }
+
     const sortOptions = {};
+    if (keyword) {
+        sortOptions.score = { $meta: "textScore" };
+    }
+
     if (sort) {
         const [field, order] = sort.split('_');
         const sortOrder = order === 'asc' ? 1 : -1;
@@ -71,15 +87,16 @@ const searchProducts = asyncHandler(async (req, res) => {
         } else if (field) {
             sortOptions[field] = sortOrder;
         }
-    } else {
+    }
+
+    if (Object.keys(sortOptions).length === 0) {
         sortOptions.createdAt = -1;
     }
-    if (keyword) {
-        sortOptions.score = { $meta: "textScore" };
-    }
+
     pipeline.push({ $sort: sortOptions });
     pipeline.push(...fullProductAggregation);
-    pipeline.push({ $project: { effectivePrice: 0 } });
+    pipeline.push({ $project: { effectivePrice: 0, searchable_details_string: 0 } });
+
     const products = await db.collection('products').aggregate(pipeline).toArray();
     res.json(products);
 });
@@ -129,6 +146,7 @@ const getRecommendations = asyncHandler(async (req, res) => {
 
 const createProduct = asyncHandler(async (req, res) => {
     const { name, price, description, imageUrl, category, details, isPromotional, promotionalPrice } = req.body;
+
     const db = getDb();
     const numericPrice = Number(price);
     let categoryName = '';
@@ -163,6 +181,7 @@ const createProduct = asyncHandler(async (req, res) => {
         rating: 0,
         numReviews: 0,
         createdAt: new Date(),
+        searchable_details_string: generateSearchableString(details),
     };
     const result = await db.collection('products').insertOne(product);
     const newProductWithDetails = await db.collection('products').aggregate([
@@ -192,6 +211,7 @@ const updateProduct = asyncHandler(async (req, res) => {
         details,
         isPromotional,
         promotionalPrice: (isPromotional && promotionalPrice) ? Number(promotionalPrice) : null,
+        searchable_details_string: generateSearchableString(details),
     };
     const result = await db.collection('products').updateOne(
         { _id: productId },

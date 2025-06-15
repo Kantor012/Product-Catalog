@@ -30,7 +30,9 @@ const connectDB = async () => {
         }
         await productsCollection.createIndex(
             {
-                "$**": "text" // wildcard text index
+                name: "text",
+                description: "text",
+                searchable_details_string: "text"
             },
             {
                 name: "ProductTextIndex"
