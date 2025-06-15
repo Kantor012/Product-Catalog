@@ -21,6 +21,20 @@ export const useCategoryStore = defineStore('categories', {
             } finally {
                 this.loading = false;
             }
-        }
+        },
+        async createCategory(name: string) {
+            const uiStore = useUiStore();
+            try {
+                const response = await apiClient.post('/categories', { name });
+                const newCategory = response.data;
+                this.categories.push(newCategory);
+                uiStore.setNotification('Category successfully added!', 'success');
+                return newCategory;
+            } catch (error: any) {
+                const message = error.response?.data?.message || 'Failed to create category.';
+                uiStore.setNotification(message, 'error');
+                return null;
+            }
+        },
     }
 });

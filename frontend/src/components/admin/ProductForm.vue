@@ -2,6 +2,7 @@
 import { ref, watch, defineProps, defineEmits, onMounted } from 'vue';
 import { useCategoryStore } from '@/store/categoryStore';
 
+
 const categoryStore = useCategoryStore();
 const props = defineProps({
     productToEdit: {
@@ -38,6 +39,20 @@ watch(() => props.productToEdit, (newProduct) => {
         detailsList.value = [];
     }
 }, { immediate: true, deep: true });
+
+const isAddingCategory = ref(false);
+const newCategoryName = ref('');
+
+const handleAddNewCategory = async () => {
+    if (!newCategoryName.value.trim()) return;
+
+    const newCategory = await categoryStore.createCategory(newCategoryName.value);
+    if (newCategory) {
+        form.value.category = newCategory._id;
+        isAddingCategory.value = false;
+        newCategoryName.value = '';
+    }
+};
 
 const addDetail = () => {
     detailsList.value.push({ key: '', value: '' });
@@ -84,13 +99,23 @@ onMounted(() => {
         <p>Price</p>
         <input type="number" step="0.01" v-model.number="form.price" placeholder="Price" required />
 
-        <label for="category-select">Category</label>
-        <select v-model="form.category" id="category-select" required>
-            <option disabled value="">Select a category</option>
-            <option v-for="cat in categoryStore.categories" :key="cat._id" :value="cat._id">
-                {{ cat.name }}
-            </option>
-        </select>
+        <div class="category-management">
+            <label for="category-select">Category</label>
+            <div v-if="!isAddingCategory" class="category-select-row">
+                <select v-model="form.category" id="category-select" required>
+                    <option disabled value="">Select a category</option>
+                    <option v-for="cat in categoryStore.categories" :key="cat._id" :value="cat._id">
+                        {{ cat.name }}
+                    </option>
+                </select>
+                <button type="button" @click="isAddingCategory = true" class="add-btn-inline">Add new</button>
+            </div>
+            <div v-else class="category-add-row">
+                <input type="text" v-model="newCategoryName" placeholder="New category name..." />
+                <button type="button" @click="handleAddNewCategory" class="submit-btn-inline">Save</button>
+                <button type="button" @click="isAddingCategory = false" class="cancel-btn-inline">Cancel</button>
+            </div>
+        </div>
         <hr>
         <h4>Promotions</h4>
         <div class="form-group-inline">
@@ -133,16 +158,14 @@ onMounted(() => {
 .add-btn { background-color: #2c3e50; margin-top: 0; align-self: flex-start; }
 hr { width: 100%; margin: 20px 0; }
 .submit-btn { margin-top: 10px; background-color: var(--primary-color); }
-
-.form-group {
-    margin-top: 1rem;
-}
-.form-group-inline {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.form-group-inline input[type="checkbox"] {
-    width: auto;
-}
+.form-group { margin-top: 1rem; }
+.form-group-inline { display: flex; align-items: center; gap: 10px; }
+.form-group-inline input[type="checkbox"] { width: auto; }
+.category-management { margin-bottom: 1rem; }
+.category-select-row, .category-add-row { display: flex; gap: 10px; align-items: center; }
+.category-select-row select { flex-grow: 1; margin-bottom: 0; }
+.add-btn-inline, .submit-btn-inline, .cancel-btn-inline { padding: 0.5rem 1rem; flex-shrink: 0; }
+.add-btn-inline { background-color: #17a2b8; }
+.submit-btn-inline { background-color: var(--success-color); }
+.cancel-btn-inline { background-color: #6c757d; }
 </style>
